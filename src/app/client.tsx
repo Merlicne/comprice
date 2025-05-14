@@ -182,7 +182,7 @@ function PriceTable({
 }
 
 // Main Page component
-export default function Page2({ data: initialData }: { data: Item[] }) {
+export default function ClientRender({ data: initialData }: { data: Item[] }) {
     // Main state
     const [data, setData] = useState<Item[]>([]);
     const [dirty, setDirty] = useState(false);
