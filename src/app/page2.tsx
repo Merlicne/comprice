@@ -18,8 +18,8 @@ type InputFieldConfig = {
 
 const INPUT_FIELDS: InputFieldConfig[] = [
     { type: 'text', field: 'name', placeholder: 'Name', className: 'w-full rounded-md' },
-    { type: 'number', field: 'price', placeholder: 'Price', className: 'w-full rounded-md' },
-    { type: 'number', field: 'volume', placeholder: 'Volume', className: 'w-full rounded-md' },
+    { type: 'text', field: 'price', placeholder: 'Price', className: 'w-full rounded-md' },
+    { type: 'text', field: 'volume', placeholder: 'Volume', className: 'w-full rounded-md' },
 ];
 
 // Component for rendering a table row with editable inputs
@@ -45,8 +45,8 @@ function TableRowInput({
     useEffect(() => {
         setLocalValues({
             name: item.name,
-            price: item.price,
-            volume: item.volume
+            price: Number(item.price),
+            volume: Number(item.volume)
         });
     }, [item]);
 
