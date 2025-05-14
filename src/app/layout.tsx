@@ -3,7 +3,6 @@ import "@/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { TRPCReactProvider } from "@/trpc/react";
-import { getData } from "@/server/api/action/cookies";
 
 export const metadata: Metadata = {
   title: {

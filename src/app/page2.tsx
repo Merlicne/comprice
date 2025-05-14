@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Separator } from "@/components/ui/separator"
 import { randomBytes } from "crypto";
@@ -24,11 +23,11 @@ const INPUT_FIELDS: InputFieldConfig[] = [
 ];
 
 // Component for rendering a table row with editable inputs
-function TableRowInput({ 
-    item, 
-    index, 
-    onInputChange, 
-    isMinimumRatio = false 
+function TableRowInput({
+    item,
+    index,
+    onInputChange,
+    isMinimumRatio = false
 }: {
     item: Item;
     index: number;
@@ -71,7 +70,7 @@ function TableRowInput({
     };
 
     // Dynamic row styling based on whether this item has the minimum ratio
-    const rowClass = isMinimumRatio 
+    const rowClass = isMinimumRatio
         ? "bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500"
         : "bg-slate-50 dark:bg-slate-800/40";
 
@@ -97,9 +96,9 @@ function TableRowInput({
 }
 
 // PriceTable component for showing the list of items
-function PriceTable({ 
-    data, 
-    setData 
+function PriceTable({
+    data,
+    setData
 }: {
     data: Item[];
     setData: (data: Item[]) => void;
@@ -107,14 +106,14 @@ function PriceTable({
     // Calculate minimum price/volume ratio
     const { minRatio, minRatioItems } = useMemo(() => {
         if (data.length === 0) return { minRatio: 0, minRatioItems: new Set<number>() };
-        
+
         const validItems = data.filter(item => item.volume > 0);
         if (validItems.length === 0) return { minRatio: 0, minRatioItems: new Set<number>() };
-        
+
         // Calculate all ratios
         const ratios = validItems.map(item => item.price / item.volume);
         const minRatio = Math.min(...ratios);
-        
+
         // Find indices of all items with minimum ratio
         const minRatioItems = new Set<number>();
         data.forEach((item, index) => {
@@ -122,7 +121,7 @@ function PriceTable({
                 minRatioItems.add(index);
             }
         });
-        
+
         return { minRatio, minRatioItems };
     }, [data]);
 
@@ -234,26 +233,26 @@ export default function Page2({ data: initialData }: { data: Item[] }) {
             <div className="flex items-center justify-center my-4 sm:my-6">
                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">ComPrice</h2>
             </div>
-            
+
             <Separator className="mb-4" />
-            
+
             <div className="flex-grow pb-4 mb-4">
                 <PriceTable data={data} setData={updateData} />
             </div>
-            
+
             <footer className="sticky bottom-0 left-0 right-0 px-4 py-4 dark:bg-slate-900 sm:px-0">
                 <div className="flex items-center justify-between max-w-5xl gap-4 mx-auto">
-                    <Button 
-                        onClick={clearItems} 
+                    <Button
+                        onClick={clearItems}
                         variant="destructive"
                         size="lg"
                         className="flex-1 sm:flex-initial"
                     >
                         Clear All
                     </Button>
-                    
-                    <Button 
-                        onClick={addItem} 
+
+                    <Button
+                        onClick={addItem}
                         variant="default"
                         size="lg"
                         className="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700"
