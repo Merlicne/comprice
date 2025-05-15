@@ -3,10 +3,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Separator } from "@/components/ui/separator"
 import { randomBytes } from "crypto";
 import { type Item } from "@/model/item";
-import { saveData } from "@/server/api/action/cookies";
+import { saveData } from "@/server/action/cookies";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner"
+
 
 // Define input field configuration for item properties
 type InputFieldConfig = {
@@ -197,9 +199,9 @@ export default function ClientRender({ data: initialData }: { data: Item[] }) {
         if (!dirty) return;
 
         const timeout = setTimeout(() => {
-            saveData("data", data)
+            saveData(data)
                 .then(() => console.log("Data saved successfully"))
-                .catch((error) => console.error("Failed to save data", error));
+                .catch((error : any) => console.error("Failed to save data", error));
             setDirty(false);
         }, 1000);
 
@@ -214,6 +216,10 @@ export default function ClientRender({ data: initialData }: { data: Item[] }) {
 
     // Add a new item
     const addItem = useCallback(() => {
+        if (data.length >= 10) {
+            toast.error("You can only add up to 10 items");
+            return;
+        }
         const uniqueId = randomBytes(4).toString("hex");
         const newItem: Item = {
             name: `Item ${uniqueId.substring(0, 4)}`,
