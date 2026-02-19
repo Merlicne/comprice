@@ -1,12 +1,7 @@
-import { getData } from "@/server/action/cookies";
 import ClientRender from "./client";
 
-
-
-
-export default async function Home() {
-  const cookieData = await getData();
+export default function Home() {
   return (
-    <ClientRender data={cookieData ?? []} />
+    <ClientRender />
   )
 }

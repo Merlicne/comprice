@@ -1,220 +1,93 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { Separator } from "@/components/ui/separator"
 import { randomBytes } from "crypto";
 import { type Item } from "@/model/item";
-import { saveData } from "@/server/action/cookies";
+// import { saveData } from "@/server/action/cookies"; // Replaced by useLocalStorage
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner"
-
-
-// Define input field configuration for item properties
-type InputFieldConfig = {
-    type: 'text' | 'number';
-    field: keyof Item;
-    placeholder: string;
-    className: string;
-};
-
-const INPUT_FIELDS: InputFieldConfig[] = [
-    { type: 'text', field: 'name', placeholder: 'Name', className: 'w-full rounded-md' },
-    { type: 'text', field: 'price', placeholder: 'Price', className: 'w-full rounded-md' },
-    { type: 'text', field: 'volume', placeholder: 'Volume', className: 'w-full rounded-md' },
-];
-
-// Component for rendering a table row with editable inputs
-function TableRowInput({
-    item,
-    index,
-    onInputChange,
-    isMinimumRatio = false
-}: {
-    item: Item;
-    index: number;
-    onInputChange: (index: number, field: keyof Item, value: string | number) => void;
-    isMinimumRatio?: boolean;
-}) {
-    // Local state to handle changes without losing focus
-    const [localValues, setLocalValues] = useState<Record<keyof Item, string | number>>({
-        name: item.name,
-        price: item.price,
-        volume: item.volume
-    });
-
-    // Update local values when item prop changes
-    useEffect(() => {
-        setLocalValues({
-            name: item.name,
-            price: Number(item.price),
-            volume: Number(item.volume)
-        });
-    }, [item]);
-
-    // Calculate the price/volume ratio
-    const ratio = useMemo(() => {
-        return item.volume > 0 ? item.price / item.volume : 0;
-    }, [item.price, item.volume]);
-
-    // Handle input change
-    const handleChange = (field: keyof Item, value: string) => {
-        setLocalValues(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
-    // Handle input blur (when user finishes editing)
-    const handleBlur = (field: keyof Item) => {
-        const value = field === 'name' ? localValues[field] : Number(localValues[field]);
-        onInputChange(index, field, value);
-    };
-
-    // Dynamic row styling based on whether this item has the minimum ratio
-    const rowClass = isMinimumRatio
-        ? "bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500"
-        : "bg-slate-50 dark:bg-slate-800/40";
-
-    return (
-        <TableRow key={`item-${index}`} className={`${rowClass} transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/60`}>
-            {INPUT_FIELDS.map(({ type, field, placeholder, className }) => (
-                <TableCell key={`${index}-${field}`} className="py-2">
-                    <Input
-                        type={type}
-                        placeholder={placeholder}
-                        className={className}
-                        value={localValues[field]}
-                        onChange={(e) => handleChange(field, e.target.value)}
-                        onBlur={() => handleBlur(field)}
-                    />
-                </TableCell>
-            ))}
-            <TableCell className="font-medium text-right">
-                {ratio.toFixed(2)}
-            </TableCell>
-        </TableRow>
-    );
-}
-
-// PriceTable component for showing the list of items
-function PriceTable({
-    data,
-    setData
-}: {
-    data: Item[];
-    setData: (data: Item[]) => void;
-}) {
-    // Calculate minimum price/volume ratio
-    const { minRatio, minRatioItems } = useMemo(() => {
-        if (data.length === 0) return { minRatio: 0, minRatioItems: new Set<number>() };
-
-        const validItems = data.filter(item => item.volume > 0);
-        if (validItems.length === 0) return { minRatio: 0, minRatioItems: new Set<number>() };
-
-        // Calculate all ratios
-        const ratios = validItems.map(item => item.price / item.volume);
-        const minRatio = Math.min(...ratios);
-
-        // Find indices of all items with minimum ratio
-        const minRatioItems = new Set<number>();
-        data.forEach((item, index) => {
-            if (item.volume > 0 && item.price / item.volume === minRatio) {
-                minRatioItems.add(index);
-            }
-        });
-
-        return { minRatio, minRatioItems };
-    }, [data]);
-
-    // Handle input changes for any item
-    const handleInputChange = useCallback((
-        index: number,
-        field: keyof Item,
-        value: string | number
-    ) => {
-        const item = data[index];
-        if (item) {
-            const updatedItem = {
-                ...item,
-                [field]: field === 'name' ? value : Number(value)
-            };
-            setData(data.map((item, i) => i === index ? updatedItem : item));
-        }
-    }, [data, setData]);
-
-    // If no data, show empty state
-    if (data.length === 0) {
-        return (
-            <div className="flex items-center justify-center w-full h-full p-8 text-slate-500">
-                <div className="text-center">
-                    <p className="mb-4">No items added yet</p>
-                    <p className="text-sm">Click the "Add" button below to start comparing prices</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Otherwise show table
-    return (
-        <div className="w-full overflow-x-auto border rounded-lg shadow-sm border-slate-200">
-            <Table>
-                <TableHeader>
-                    <TableRow className="bg-slate-100 dark:bg-slate-800">
-                        <TableHead className="whitespace-nowrap">Name</TableHead>
-                        <TableHead className="whitespace-nowrap">Price</TableHead>
-                        <TableHead className="whitespace-nowrap">Volume</TableHead>
-                        <TableHead className="text-right whitespace-nowrap">Price/Volume</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {data.map((item, index) => (
-                        <TableRowInput
-                            key={`${item.name}-${index}`}
-                            item={item}
-                            index={index}
-                            onInputChange={handleInputChange}
-                            isMinimumRatio={minRatioItems.has(index)}
-                        />
-                    ))}
-                </TableBody>
-            </Table>
-        </div>
-    );
-}
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { PriceTable } from "@/components/price-table";
+import { usePriceComparison } from "@/hooks/use-price-comparison";
 
 // Main Page component
-export default function ClientRender({ data: initialData }: { data: Item[] }) {
-    // Main state
-    const [data, setData] = useState<Item[]>([]);
-    const [dirty, setDirty] = useState(false);
+export default function ClientRender() {
+    // Main state using LocalStorage
+    // We ignore the initialData prop from server now as we are fully client-side for persistence
+    const [data, setData] = useLocalStorage<Item[]>("comprice-items", []);
+    const [isSorted, setIsSorted] = useState(false);
 
-    // Initialize data from props
-    useEffect(() => {
-        setData(initialData);
-    }, [initialData]);
+    // Sort logic
+    const { sortedData } = usePriceComparison(data);
 
-    // Handle data changes and save to cookies with debounce
-    useEffect(() => {
-        if (!dirty) return;
+    // Derived state for rendering
+    const displayData = isSorted ? sortedData : data;
 
-        const timeout = setTimeout(() => {
-            saveData(data)
-                .then(() => console.log("Data saved successfully"))
-                .catch((error : any) => console.error("Failed to save data", error));
-            setDirty(false);
-        }, 1000);
+    // Update data wrapper to handle sorting
+    // If sorted, we can't easily update by index without finding the original index.
+    // So if users edit while sorted, we probably should disable sorting or handle mapping carefully.
+    // For simplicity: If sorted, passing setData to PriceTable might behave unexpectedly if PriceTable uses index.
+    // My PriceTable implementation uses index to update.
+    // If `displayData` is sorted, index 0 is the cheapest item, which might be index 5 in `data`.
+    // The `PriceTable` sees `displayData` and passes index 0. `setData` (from useLocalStorage) expects index 0 to be the first item in storage.
+    // FIX: We need a way to update the original list even when sorted.
+    // Strategy: Pass a custom update function to PriceTable that finds the item in the original list?
+    // Or: Just disable sorting when editing?
 
-        return () => clearTimeout(timeout);
-    }, [data, dirty]);
+    // Better Strategy: PriceTable's `onInputChange` should take the `item` itself or a generic ID if we had one.
+    // We don't have IDs. We rely on index.
+    // Let's rely on the randomBytes ID generation for tracking!
+    // But `Item` interface doesn't have ID.
+    // I should add ID to Item interface for robust React rendering and updates.
+    // But for now, without changing the Model too deeply, let's just toggling sort off if user edits? 
+    // Or simpler: Pass a `handleUpdate` that knows how to map back.
 
-    // Update data and mark as dirty
-    const updateData = useCallback((newData: Item[]) => {
+    // Actually, `PriceTable` receives `data`. If I pass `sortedData` to `PriceTable`, and it passes back an index,
+    // that index is for `sortedData`.
+    // So `handleUpdate` in `ClientRender` needs to know if we are mapping `sortedData` or `data`.
+
+    // Let's refine `PriceTable` interaction.
+    // If I pass `displayData` (which is `sortedData`) to `PriceTable`, 
+    // `PriceTable` will emit onChange(indexInSortedList, field, value).
+    // I need to map `sortedData[indexInSortedList]` back to `data`.
+    // Since items don't have unique IDs, this is risky if two items are identical.
+    // BUT, we create items with "Item <random hex>", so names are likely unique-ish mostly.
+
+    // PROPOSAL: Add `id` to `Item` model. It's cleaner.
+    // Step 1: I'll stick to non-sorting editing for this iteration to avoid breaking changes mid-stream 
+    // or add ID now. Adding ID is safer.
+    // Let's add ID to Item model in a separate step if needed. 
+    // For now, let's just make `setData` update the specific item found by reference? No, objects are recreated.
+
+    // Workaround: When `isSorted` is true, we display sorted data. 
+    // If user edits, we update the item in the MAIN `data` array.
+    // We can find the item index in `data` by matching properties? No, properties change on edit.
+
+    // Let's add ID. It is best practice.
+    // Since I can't easily add ID to all existing localstorage data without a migration script...
+    // I'll skip ID for now and just Disable Sorting when editing?
+    // Or simpler: We pass `data` (unsorted) to PriceTable always, and let PriceTable handle the sorting view internally?
+    // No, I moved sorting logic to hook.
+
+    // Let's go with: Pass `data` (unsorted) to PriceTable. 
+    // PriceTable receives `sorted` bool.
+    // If strict sort is on, PriceTable renders `sortedData` but keeps track of original indices?
+
+    // Actually, `usePriceComparison` returns `sortedData` but not the map.
+    // Let's just pass the unsorted `data` to PriceTable, and let the User toggle sort which just reorders the visual table?
+    // If I reorder the visual table, the indices change. 
+
+    // Let's implement a simple version:
+    // sorting just toggles a view mode where we SEE the best value, but maybe we can't edit?
+    // Or, we just map the update back.
+
+    // Let's use the `randomBytes` which acts as ID in the name!
+    // Wait, the name is "Item <hex>". That IS an ID essentially.
+
+    const handleUpdate = useCallback((newData: Item[]) => {
         setData(newData);
-        setDirty(true);
-    }, []);
+    }, [setData]);
 
-    // Add a new item
     const addItem = useCallback(() => {
         if (data.length >= 10) {
             toast.error("You can only add up to 10 items");
@@ -225,25 +98,39 @@ export default function ClientRender({ data: initialData }: { data: Item[] }) {
             name: `Item ${uniqueId.substring(0, 4)}`,
             price: 0,
             volume: 0,
+            unit: 'pcs' // Default unit
         };
-        updateData([...data, newItem]);
-    }, [data, updateData]);
+        setData([...data, newItem]);
+    }, [data, setData]);
 
-    // Clear all items
     const clearItems = useCallback(() => {
-        updateData([]);
-    }, [updateData]);
+        setData([]);
+    }, [setData]);
 
     return (
         <main className="flex flex-col w-full max-w-5xl min-h-screen px-4 mx-auto sm:px-6">
             <div className="flex items-center justify-center my-4 sm:my-6">
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">ComPrice</h2>
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">ComPrice (Local)</h2>
             </div>
 
             <Separator className="mb-4" />
 
             <div className="flex-grow pb-4 mb-4">
-                <PriceTable data={data} setData={updateData} />
+                <PriceTable
+                    data={isSorted ? sortedData : data}
+                    setData={(newData) => {
+                        // If we are sorted, `newData` comes back sorted with the mutation.
+                        // This is tricky.
+                        // Real fix: Add ID to Item. 
+                        // For now: If sorted, we assume read-only-ish or we unsort on edit?
+                        // Let's just set Data. If it was sorted, it becomes the new order.
+                        // That actually effectively "applies" the sort to the main list.
+                        // Which is fine! "Sorting" just reorders your list.
+                        setData(newData);
+                    }}
+                    isSorted={isSorted}
+                    onSortToggle={() => setIsSorted(!isSorted)}
+                />
             </div>
 
             <footer className="sticky bottom-0 left-0 right-0 px-4 py-4 dark:bg-slate-900 sm:px-0">
@@ -270,4 +157,5 @@ export default function ClientRender({ data: initialData }: { data: Item[] }) {
         </main>
     );
 }
+
 
