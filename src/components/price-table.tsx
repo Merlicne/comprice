@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback } from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { type Item } from "@/model/item";
@@ -56,38 +58,42 @@ export function PriceTable({
     }
 
     return (
-        <div className="w-full overflow-x-auto border rounded-lg shadow-sm border-slate-200">
-            <Table>
-                <TableHeader>
-                    <TableRow className="bg-slate-100 dark:bg-slate-800">
-                        <TableHead className="whitespace-nowrap w-[30%]">Name</TableHead>
-                        <TableHead className="whitespace-nowrap w-[20%]">Price</TableHead>
-                        <TableHead className="whitespace-nowrap w-[30%]">Volume / Unit</TableHead>
-                        <TableHead className="text-right whitespace-nowrap w-[20%]">
-                            <Button
-                                variant="ghost"
-                                onClick={onSortToggle}
-                                className="flex items-center gap-1 ml-auto font-bold h-8 px-2"
-                            >
-                                Value
-                                <ArrowUpDown className={`h-3 w-3 ${isSorted ? "text-emerald-500" : ""}`} />
-                            </Button>
-                        </TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {data.map((item, index) => (
-                        <TableRowInput
-                            key={`${index}-${item.name}`} // Use index in key to ensure stability when modifying
-                            item={item}
-                            index={index}
-                            onInputChange={handleInputChange}
-                            isMinimumRatio={bestValueIndices.has(index)}
-                            normalizedPrice={getNormalizedPrice(item)}
-                        />
-                    ))}
-                </TableBody>
-            </Table>
+
+        <div className="w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 shadow-sm overflow-hidden transition-all hover:shadow-md">
+            <div className="overflow-x-auto">
+                <Table>
+                    <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
+                        <TableRow className="border-b border-slate-100 dark:border-slate-800">
+                            <TableHead className="w-[35%] min-w-[140px] pl-4">Name</TableHead>
+                            <TableHead className="w-[20%] min-w-[100px]">Price</TableHead>
+                            <TableHead className="w-[25%] min-w-[150px]">Volume / Unit</TableHead>
+                            <TableHead className="w-[20%] text-right pr-4">
+                                <Button
+                                    variant="ghost"
+                                    onClick={onSortToggle}
+                                    className="h-8 px-2 font-semibold text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 data-[sorted=true]:text-emerald-600"
+                                    data-sorted={isSorted}
+                                >
+                                    Value
+                                    <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+                                </Button>
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {data.map((item, index) => (
+                            <TableRowInput
+                                key={`${index}-${item.name}`}
+                                item={item}
+                                index={index}
+                                onInputChange={handleInputChange}
+                                isMinimumRatio={bestValueIndices.has(index)}
+                                normalizedPrice={getNormalizedPrice(item)}
+                            />
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
         </div>
     );
 }

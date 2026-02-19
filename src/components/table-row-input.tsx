@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -77,39 +79,46 @@ export function TableRowInput({
         onInputChange(index, 'unit', value);
     };
 
-    // Dynamic row styling based on whether this item has the minimum ratio
+    // Dynamic row styling
+    // Best Value: nice emerald tint. 
+    // Normal: white with slate hover.
     const rowClass = isMinimumRatio
-        ? "bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500"
-        : "bg-slate-50 dark:bg-slate-800/40";
+        ? "bg-emerald-50/70 hover:bg-emerald-100/60 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/30"
+        : "bg-white hover:bg-slate-50 dark:bg-slate-950 dark:hover:bg-slate-900/50";
+
+    // Input Reset Style: looks like text until focused
+    const inputClass = "h-9 border-transparent bg-transparent shadow-none hover:bg-black/5 dark:hover:bg-white/5 focus-visible:bg-white dark:focus-visible:bg-slate-950 focus-visible:border-emerald-500 focus-visible:ring-1 focus-visible:ring-emerald-500/20 transition-all font-medium";
 
     return (
-        <TableRow className={`${rowClass} transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/60`}>
-            <TableCell className="py-2">
+        <TableRow className={`${rowClass} group transition-colors border-b border-slate-100 dark:border-slate-800`}>
+            <TableCell className="p-2 pl-4">
                 <Input
                     type="text"
-                    placeholder="Name"
-                    className="w-full rounded-md"
+                    placeholder="Item Name"
+                    className={`${inputClass} w-full`}
                     value={localValues.name}
                     onChange={(e) => handleChange('name', e.target.value)}
                     onBlur={() => handleBlur('name')}
                 />
             </TableCell>
-            <TableCell className="py-2">
+            <TableCell className="p-2">
                 <Input
                     type="number"
-                    placeholder="Price"
-                    className="w-full rounded-md"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    className={`${inputClass} w-full`}
                     value={localValues.price}
                     onChange={(e) => handleChange('price', e.target.value)}
                     onBlur={() => handleBlur('price')}
                 />
             </TableCell>
-            <TableCell className="py-2">
-                <div className="flex space-x-2">
+            <TableCell className="p-2">
+                <div className="flex items-center gap-1.5 bg-transparent rounded-md focus-within:ring-1 focus-within:ring-emerald-500/20 p-1">
                     <Input
                         type="number"
-                        placeholder="Volume"
-                        className="w-full rounded-md flex-grow"
+                        inputMode="decimal"
+                        placeholder="Vol"
+                        className={`${inputClass} flex-grow min-w-[60px]`}
                         value={localValues.volume}
                         onChange={(e) => handleChange('volume', e.target.value)}
                         onBlur={() => handleBlur('volume')}
@@ -118,12 +127,12 @@ export function TableRowInput({
                         value={localValues.unit as string}
                         onValueChange={handleUnitChange}
                     >
-                        <SelectTrigger className="w-[80px]">
+                        <SelectTrigger className="w-[70px] h-8 border-0 bg-slate-100/50 dark:bg-slate-800/50 hover:bg-slate-200/50 rounded-md text-xs font-medium focus:ring-0 px-2 gap-1">
                             <SelectValue placeholder="Unit" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent align="end">
                             {UNITS.map(unit => (
-                                <SelectItem key={unit} value={unit}>
+                                <SelectItem key={unit} value={unit} className="text-xs">
                                     {unit}
                                 </SelectItem>
                             ))}
@@ -131,8 +140,19 @@ export function TableRowInput({
                     </Select>
                 </div>
             </TableCell>
-            <TableCell className="font-medium text-right">
-                {isFinite(normalizedPrice) ? normalizedPrice.toFixed(4) : '-'}
+            <TableCell className="p-2 pr-4 text-right">
+                {isMinimumRatio ? (
+                    <div className="inline-flex flex-col items-end">
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums text-lg leading-none">
+                            {isFinite(normalizedPrice) ? normalizedPrice.toFixed(4) : '-'}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500/80 mt-0.5">Best Value</span>
+                    </div>
+                ) : (
+                    <span className="font-semibold text-slate-500 dark:text-slate-400 tabular-nums">
+                        {isFinite(normalizedPrice) ? normalizedPrice.toFixed(4) : '-'}
+                    </span>
+                )}
             </TableCell>
         </TableRow>
     );

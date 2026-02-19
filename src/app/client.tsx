@@ -1,14 +1,14 @@
 "use client";
+
 import { useCallback, useState } from "react";
-import { Separator } from "@/components/ui/separator"
-import { randomBytes } from "crypto";
 import { type Item } from "@/model/item";
-// import { saveData } from "@/server/action/cookies"; // Replaced by useLocalStorage
+import { randomBytes } from "crypto";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner"
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { PriceTable } from "@/components/price-table";
 import { usePriceComparison } from "@/hooks/use-price-comparison";
+import { Plus, Trash2 } from "lucide-react";
 
 // Main Page component
 export default function ClientRender() {
@@ -108,49 +108,53 @@ export default function ClientRender() {
     }, [setData]);
 
     return (
-        <main className="flex flex-col w-full max-w-5xl min-h-screen px-4 mx-auto sm:px-6">
-            <div className="flex items-center justify-center my-4 sm:my-6">
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">ComPrice (Local)</h2>
-            </div>
+        <main className="flex flex-col w-full min-h-screen bg-slate-50 dark:bg-slate-950/20">
+            {/* Glassmorphic Header */}
+            <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md dark:bg-slate-950/80 border-slate-200/60 dark:border-slate-800/60 px-4 sm:px-6 py-3 transition-all duration-200">
+                <div className="max-w-5xl mx-auto flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                        <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                            <span className="block w-4 h-4 bg-emerald-500 rounded-full shadow-sm ring-2 ring-white dark:ring-slate-950" />
+                        </div>
+                        <h1 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+                            ComPrice
+                        </h1>
+                    </div>
+                </div>
+            </header>
 
-            <Separator className="mb-4" />
-
-            <div className="flex-grow pb-4 mb-4">
+            <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
                 <PriceTable
                     data={isSorted ? sortedData : data}
-                    setData={(newData) => {
-                        // If we are sorted, `newData` comes back sorted with the mutation.
-                        // This is tricky.
-                        // Real fix: Add ID to Item. 
-                        // For now: If sorted, we assume read-only-ish or we unsort on edit?
-                        // Let's just set Data. If it was sorted, it becomes the new order.
-                        // That actually effectively "applies" the sort to the main list.
-                        // Which is fine! "Sorting" just reorders your list.
-                        setData(newData);
-                    }}
+                    setData={(newData) => setData(newData)}
                     isSorted={isSorted}
                     onSortToggle={() => setIsSorted(!isSorted)}
                 />
             </div>
 
-            <footer className="sticky bottom-0 left-0 right-0 px-4 py-4 dark:bg-slate-900 sm:px-0">
-                <div className="flex items-center justify-between max-w-5xl gap-4 mx-auto">
-                    <Button
-                        onClick={clearItems}
-                        variant="destructive"
-                        size="lg"
-                        className="flex-1 sm:flex-initial"
-                    >
-                        Clear All
-                    </Button>
+            {/* Floating Action Footer */}
+            <footer className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4 pointer-events-none">
+                <div className="flex items-center justify-center gap-3 p-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border border-slate-200/60 dark:border-slate-800/60 rounded-full shadow-xl shadow-slate-200/20 pointer-events-auto">
+                    {data.length > 0 && (
+                        <Button
+                            onClick={clearItems}
+                            variant="ghost"
+                            size="icon"
+                            className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-full w-10 h-10 transition-colors"
+                            title="Clear All"
+                        >
+                            <Trash2 className="h-5 w-5" />
+                        </Button>
+                    )}
+
+                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
 
                     <Button
                         onClick={addItem}
-                        variant="default"
                         size="lg"
-                        className="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700"
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-full px-8 shadow-md hover:shadow-lg transition-all active:scale-95"
                     >
-                        Add Item
+                        <Plus className="mr-2 h-5 w-5" /> Add Item
                     </Button>
                 </div>
             </footer>
