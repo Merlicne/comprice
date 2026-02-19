@@ -62,7 +62,7 @@ export function PriceTable({
         <div className="w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-800/60 shadow-sm overflow-hidden transition-all hover:shadow-md">
             <div className="overflow-x-auto">
                 <Table>
-                    <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
+                    <TableHeader className="hidden sm:table-header-group bg-slate-50/50 dark:bg-slate-900/50">
                         <TableRow className="border-b border-slate-100 dark:border-slate-800">
                             <TableHead className="w-[35%] min-w-[140px] pl-4">Name</TableHead>
                             <TableHead className="w-[20%] min-w-[100px]">Price</TableHead>
